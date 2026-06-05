@@ -1,0 +1,76 @@
+_format_version: "2.1"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Kong routes all public traffic to the correct internal Supabase service.
+# All upstream URLs use Railway PRIVATE networking (not public domains).
+# Private hostnames are injected at runtime via environment variables —
+# never hardcode them here.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── PostgREST — REST API ────────────────────────────────────────────────────
+  - name: rest-v1
+    url: http://$(PGRST_PRIVATE_HOST):$(PGRST_PORT)/
+    routes:
+      - name: rest-v1-all
+        strip_path: true
+        paths:
+          - /rest/v1/
+    plugins:
+      - name: cors
+
+  # ── GoTrue — Auth ───────────────────────────────────────────────────────────
+  - name: auth-v1
+    url: http://$(GOTRUE_PRIVATE_HOST):$(GOTRUE_PORT)/
+    routes:
+      - name: auth-v1-all
+        strip_path: true
+        paths:
+          - /auth/v1/
+    plugins:
+      - name: cors
+
+  # ── Realtime ─────────────────────────────────────────────────────────────────
+  - name: realtime-v1
+    url: http://$(REALTIME_PRIVATE_HOST):$(REALTIME_PORT)/
+    routes:
+      - name: realtime-v1-all
+        strip_path: true
+        paths:
+          - /realtime/v1/
+    plugins:
+      - name: cors
+
+  # ── Storage ──────────────────────────────────────────────────────────────────
+  - name: storage-v1
+    url: http://$(STORAGE_PRIVATE_HOST):$(STORAGE_PORT)/
+    routes:
+      - name: storage-v1-all
+        strip_path: true
+        paths:
+          - /storage/v1/
+    plugins:
+      - name: cors
+
+  # ── Studio — ONLY accessible on private network (no public route) ────────────
+  # Studio is intentionally NOT exposed through Kong.
+  # Access it by generating a Railway private domain for the studio service only.
+
+# ── Global plugins ────────────────────────────────────────────────────────────
+plugins:
+  - name: key-auth
+    config:
+      key_names:
+        - apikey
+        - Authorization
+      hide_credentials: false
+      anonymous: null
+
+consumers:
+  - username: anon
+    keyauth_credentials:
+      - key: $(ANON_KEY)
+
+  - username: service_role
+    keyauth_credentials:
+      - key: $(SERVICE_ROLE_KEY)

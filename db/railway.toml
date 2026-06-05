@@ -1,0 +1,12 @@
+[build]
+  # Official Supabase Postgres image — pinned to a specific SHA for stability.
+  # To upgrade: test the new tag in a staging environment first, then update here.
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  # Postgres must be healthy before any other service starts.
+  # Railway restarts dependent services automatically once this passes.
+  healthcheckPath  = ""
+  startCommand     = "docker-entrypoint.sh postgres"
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 5

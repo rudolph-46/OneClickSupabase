@@ -1,0 +1,8 @@
+[build]
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  # Kong is the only service that needs a public Railway domain.
+  # Generate a domain for this service from the Railway dashboard.
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 5

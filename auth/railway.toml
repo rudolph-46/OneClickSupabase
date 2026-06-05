@@ -1,0 +1,8 @@
+[build]
+  dockerfilePath = "Dockerfile"
+
+[deploy]
+  restartPolicyType       = "ON_FAILURE"
+  restartPolicyMaxRetries = 10
+  # GoTrue needs Postgres to be healthy first.
+  # If it crashes on boot, Railway will retry — Postgres should be ready by then.
