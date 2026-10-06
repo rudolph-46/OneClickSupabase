@@ -2,6 +2,10 @@
 # All other services communicate over Railway private networking.
 FROM kong:3.6.1
 
+# Bundle the declarative config — Railway has no bind-mounts, so the file
+# must be baked into the image (KONG_DECLARATIVE_CONFIG points here).
+COPY kong.yml /home/kong/kong.yml
+
 # Railway routes external traffic to $PORT
 ENV KONG_PROXY_LISTEN="0.0.0.0:${PORT:-8000}"
 ENV KONG_PROXY_LISTEN_SSL="0.0.0.0:8443 ssl"
