@@ -3,14 +3,17 @@ _format_version: "2.1"
 # ─────────────────────────────────────────────────────────────────────────────
 # Kong routes all public traffic to the correct internal Supabase service.
 # All upstream URLs use Railway PRIVATE networking (not public domains).
-# Private hostnames are injected at runtime via environment variables —
-# never hardcode them here.
+#
+# NOTE (Railway fork fix): Kong does NOT expand $(VAR) shell syntax in
+# declarative config, so upstreams are hardcoded to the stable private
+# hostnames/ports. Only true secrets (API keys) use vault references,
+# which Kong resolves from environment variables at boot.
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
   # ── PostgREST — REST API ────────────────────────────────────────────────────
   - name: rest-v1
-    url: http://$(PGRST_PRIVATE_HOST):$(PGRST_PORT)/
+    url: http://rest.railway.internal:3000/
     routes:
       - name: rest-v1-all
         strip_path: true
@@ -21,7 +24,7 @@ services:
 
   # ── GoTrue — Auth ───────────────────────────────────────────────────────────
   - name: auth-v1
-    url: http://$(GOTRUE_PRIVATE_HOST):$(GOTRUE_PORT)/
+    url: http://auth.railway.internal:9999/
     routes:
       - name: auth-v1-all
         strip_path: true
@@ -32,7 +35,7 @@ services:
 
   # ── Realtime ─────────────────────────────────────────────────────────────────
   - name: realtime-v1
-    url: http://$(REALTIME_PRIVATE_HOST):$(REALTIME_PORT)/
+    url: http://realtime.railway.internal:4000/
     routes:
       - name: realtime-v1-all
         strip_path: true
@@ -43,7 +46,7 @@ services:
 
   # ── Storage ──────────────────────────────────────────────────────────────────
   - name: storage-v1
-    url: http://$(STORAGE_PRIVATE_HOST):$(STORAGE_PORT)/
+    url: http://storage.railway.internal:5000/
     routes:
       - name: storage-v1-all
         strip_path: true
@@ -54,7 +57,6 @@ services:
 
   # ── Studio — ONLY accessible on private network (no public route) ────────────
   # Studio is intentionally NOT exposed through Kong.
-  # Access it by generating a Railway private domain for the studio service only.
 
 # ── Global plugins ────────────────────────────────────────────────────────────
 plugins:
@@ -69,8 +71,8 @@ plugins:
 consumers:
   - username: anon
     keyauth_credentials:
-      - key: $(ANON_KEY)
+      - key: "{vault://env/ANON_KEY}"
 
   - username: service_role
     keyauth_credentials:
-      - key: $(SERVICE_ROLE_KEY)
+      - key: "{vault://env/SERVICE_ROLE_KEY}"
