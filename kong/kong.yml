@@ -59,20 +59,8 @@ services:
   # Studio is intentionally NOT exposed through Kong.
 
 # ── Global plugins ────────────────────────────────────────────────────────────
-plugins:
-  - name: key-auth
-    config:
-      key_names:
-        - apikey
-        - Authorization
-      hide_credentials: false
-      anonymous: null
-
-consumers:
-  - username: anon
-    keyauth_credentials:
-      - key: "{vault://env/ANON_KEY}"
-
-  - username: service_role
-    keyauth_credentials:
-      - key: "{vault://env/SERVICE_ROLE_KEY}"
+# NOTE: No key-auth here on purpose. Each upstream (PostgREST, GoTrue,
+# Storage) validates the Supabase JWT itself — exactly like the official
+# Supabase self-hosted kong.yml. The previous key-auth + vault setup
+# rejected every request with 401, so it was removed.
+plugins: []
